@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Card } from '../ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatedTestimonials } from '../ui/animated-testimonials';
+import { Button } from '../ui/button';
 
 
 const images = [
@@ -118,7 +119,7 @@ const HomeComponent = () => {
                     />
 
                     {/* Slider controls */}
-                    <div className="absolute inset-x-0 top-1/2 flex justify-between px-4 z-20">
+                    <div className="absolute inset-x-0 top-1/2 flex justify-between px-4 z-30">
                         <button
                             onClick={previousImage}
                             className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
@@ -160,18 +161,12 @@ const HomeComponent = () => {
                                 </h1>
 
                                 <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl">
-                                    Experience the future of web design with our stunning parallax effects
-                                    and smooth animations that bring your content to life.
+                                    Twin Star Tour & Travel provides a choice of tour package for Domestic & Overseas.
                                 </p>
                                 <div className="flex gap-4">
-                                    <button className="px-6 py-3 bg-white text-black rounded-lg font-medium 
-                             hover:bg-gray-100 transition-colors">
-                                        Get Started
-                                    </button>
-                                    <button className="px-6 py-3 border border-white rounded-lg font-medium 
-                             hover:bg-white/10 transition-colors">
-                                        Learn More
-                                    </button>
+                                    <Button variant="default">
+                                        Let's Tour
+                                    </Button>
                                 </div>
                             </div>
                         </Card>
