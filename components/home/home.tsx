@@ -5,7 +5,7 @@ import { Card } from '../ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatedTestimonials } from '../ui/animated-testimonials';
 import { Button } from '../ui/button';
-
+import Link from 'next/link';
 
 const images = [
     "/img/bghero.jpg",
@@ -87,13 +87,13 @@ const HomeComponent = () => {
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
-    // Calculate parallax transforms
-    const headerTransform = `translateY(${scrollY * 0.5}px)`;
-    const imageTransform = `translateY(${scrollY * 0.2}px)`;
-    const overlayOpacity = Math.min(scrollY / 500, 0.8);
+    // Calculate parallax transforms - reduce effect for better performance
+    const headerTransform = `translateY(${scrollY * 0.15}px)`;
+    const imageTransform = `translateY(${scrollY * 0.1}px)`;
+    const overlayOpacity = Math.min(scrollY / 500, 0.7);
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full min-h-[500px] h-[100svh] overflow-hidden">
             {mounted && (
                 <>
                     {/* Background Images */}
@@ -114,12 +114,12 @@ const HomeComponent = () => {
 
                     {/* Overlay gradient */}
                     <div
-                        className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-10"
-                        style={{ opacity: overlayOpacity }}
+                        className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/80 z-10"
+                        style={{ opacity: Math.max(0.6, overlayOpacity) }}
                     />
 
-                    {/* Slider controls */}
-                    <div className="absolute inset-x-0 top-1/2 flex justify-between px-4 z-30">
+                    {/* Slider controls - hidden on small screens */}
+                    <div className="absolute inset-x-0 top-1/2 flex justify-between px-4 z-30 hidden sm:flex">
                         <button
                             onClick={previousImage}
                             className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
@@ -135,46 +135,52 @@ const HomeComponent = () => {
                     </div>
 
                     {/* Slide indicators */}
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                    <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-2 z-20">
                         {images.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentImageIndex(index)}
-                                className={`w-2 h-2 rounded-full transition-all duration-300 ${currentImageIndex === index
-                                    ? 'bg-white w-8'
-                                    : 'bg-white/50 hover:bg-white/75'
+                                className={`h-2 rounded-full transition-all duration-300 ${currentImageIndex === index
+                                        ? 'bg-white w-4 sm:w-6'
+                                        : 'bg-white/50 hover:bg-white/75 w-2'
                                     }`}
                             />
                         ))}
                     </div>
 
                     {/* Content container */}
-                    <div className="relative h-full flex items-center justify-center px-4 z-20">
-                        <Card className="max-w-6xl w-full bg-black/30 backdrop-blur-sm border-none p-8 text-white"
-                            style={{ transform: headerTransform }}>
-                            <div>
-                                <AnimatedTestimonials testimonials={testimonials} />
-                            </div>
-                            <div className='px-8'>
-                                <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
-                                    Discover Amazing Things
-                                </h1>
+                    <div className="relative h-full flex items-center justify-center p-4 z-20">
+                        <div
+                            className="bg-black/30 backdrop-blur-sm rounded-xl border-none w-full max-w-4xl overflow-hidden"
+                            style={{ transform: headerTransform }}
+                        >
+                            {/* Content layout with flexible padding */}
+                            <div className="p-4 sm:p-6 md:p-8 flex flex-col gap-4">
+                                {/* Testimonials component */}
+                                <AnimatedTestimonials testimonials={testimonials} autoplay={true} />
 
-                                <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl">
-                                    Twin Star Tour & Travel provides a choice of tour package for Domestic & Overseas.
-                                </p>
-                                <div className="flex gap-4">
-                                    <Button variant="default">
-                                        Let's Tour
+                                {/* Main content with appropriate spacing */}
+                                <div className="pt-2 sm:pt-4">
+                                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
+                                        Discover Amazing Things
+                                    </h1>
+
+                                    <p className="text-sm sm:text-base md:text-lg text-gray-200 my-3 sm:my-4 max-w-2xl">
+                                        Twin Star Tour & Travel provides a choice of tour package for Domestic & Overseas.
+                                    </p>
+
+                                    <Button variant="default" className="w-full sm:w-auto text-sm sm:text-base mt-2">
+                                        <Link href="#package_section" className="w-full text-center">
+                                            Let's Tour
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>
-                        </Card>
+                        </div>
                     </div>
                 </>
             )}
         </div>
-
     );
 }
 
