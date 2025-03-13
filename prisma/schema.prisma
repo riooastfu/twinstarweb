@@ -15,12 +15,24 @@ datasource db {
 }
 
 model MasterPackage {
-  id           String @id @default(uuid())
-  packageTitle String
-  duration     String
-  price        Int
-  description  String
-  image        String
+  id             String             @id @default(uuid())
+  packageTitle   String
+  duration       String
+  price          Int
+  description    String
+  image          String
+  location       String? // Add this field
+  minGroupSize   Int?               @default(2) // Add this field
+  maxGroupSize   Int?               @default(15) // Add this field
+  // Relations
+  gallery        PackageGallery[]
+  highlights     PackageHighlight[]
+  itinerary      PackageItinerary[]
+  inclusions     PackageInclusion[]
+  exclusions     PackageExclusion[]
+  availableDates PackageDate[]
+  reviews        PackageReview[]
+  faqs           PackageFAQ[]
 }
 
 model MasterAttraction {
@@ -29,6 +41,106 @@ model MasterAttraction {
   price    Int
   imageUrl String
   category AttractionCategory
+}
+
+model PackageGallery {
+  id        String        @id @default(uuid())
+  imageUrl  String
+  package   MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId String
+
+  @@index([packageId])
+}
+
+model PackageHighlight {
+  id          String        @id @default(uuid())
+  description String
+  package     MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId   String
+
+  @@index([packageId])
+}
+
+model PackageItinerary {
+  id            String              @id @default(uuid())
+  day           Int
+  title         String
+  description   String              @db.Text
+  accommodation String?
+  package       MasterPackage       @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId     String
+  activities    ItineraryActivity[]
+  meals         ItineraryMeal[]
+
+  @@index([packageId])
+}
+
+model ItineraryActivity {
+  id          String           @id @default(uuid())
+  name        String
+  itinerary   PackageItinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itineraryId String
+
+  @@index([itineraryId])
+}
+
+model ItineraryMeal {
+  id          String           @id @default(uuid())
+  name        String // e.g., "breakfast", "lunch", "dinner"
+  itinerary   PackageItinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itineraryId String
+
+  @@index([itineraryId])
+}
+
+model PackageInclusion {
+  id          String        @id @default(uuid())
+  description String
+  package     MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId   String
+
+  @@index([packageId])
+}
+
+model PackageExclusion {
+  id          String        @id @default(uuid())
+  description String
+  package     MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId   String
+
+  @@index([packageId])
+}
+
+model PackageDate {
+  id        String        @id @default(uuid())
+  date      DateTime
+  spots     Int           @default(15)
+  package   MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId String
+
+  @@index([packageId])
+}
+
+model PackageReview {
+  id        String        @id @default(uuid())
+  name      String
+  rating    Int // 1-5 stars
+  comment   String        @db.Text
+  date      DateTime
+  package   MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId String
+
+  @@index([packageId])
+}
+
+model PackageFAQ {
+  id        String        @id @default(uuid())
+  question  String
+  answer    String        @db.Text
+  package   MasterPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId String
+
+  @@index([packageId])
 }
 
 enum AttractionCategory {

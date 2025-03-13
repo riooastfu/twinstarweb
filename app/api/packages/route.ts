@@ -1,39 +1,101 @@
-import { NextResponse } from "next/server";
+// app/api/packages/route.ts - GET all packages, POST new package
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { createErrorResponse, createSuccessResponse, handleApiError } from "@/lib/api-utils";
+import { CreatePackageRequest } from "@/types/package";
 
-export async function GET(req: Request) {
+// GET - Fetch all packages
+export async function GET(req: NextRequest) {
     try {
+        // Parse query parameters
+        const { searchParams } = new URL(req.url);
+        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+        const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined;
+        const orderBy = searchParams.get('orderBy') || 'packageTitle';
+        const orderDir = searchParams.get('orderDir') || 'asc';
+
+        // Validate ordering parameters
+        const validOrderByFields = ['packageTitle', 'price', 'duration', 'id'];
+        const validOrderDirections = ['asc', 'desc'];
+
+        if (!validOrderByFields.includes(orderBy)) {
+            return createErrorResponse(`Invalid orderBy parameter. Must be one of: ${validOrderByFields.join(', ')}`, 400);
+        }
+
+        if (!validOrderDirections.includes(orderDir)) {
+            return createErrorResponse(`Invalid orderDir parameter. Must be one of: ${validOrderDirections.join(', ')}`, 400);
+        }
+
+        // Build query
         const packages = await db.masterPackage.findMany({
+            ...(limit !== undefined && { take: limit }),
+            ...(offset !== undefined && { skip: offset }),
             orderBy: {
-                packageTitle: 'asc'
+                [orderBy]: orderDir
+            },
+            include: {
+                _count: {
+                    select: {
+                        gallery: true,
+                        reviews: true
+                    }
+                }
             }
         });
 
-        return NextResponse.json(packages);
+        // Get total count for pagination
+        const totalCount = await db.masterPackage.count();
+
+        return createSuccessResponse({
+            packages,
+            meta: {
+                total: totalCount,
+                limit,
+                offset,
+                orderBy,
+                orderDir
+            }
+        });
     } catch (error) {
-        console.log("[PACKAGES_GET]", error);
-        return new NextResponse("Internal Error", { status: 500 });
+        return handleApiError(error);
     }
 }
 
-export async function POST(req: Request) {
+// POST - Create a new package
+export async function POST(req: NextRequest) {
     try {
-        const { package_title, duration, price, description, image } = await req.json();
+        // Parse request body
+        const body: CreatePackageRequest = await req.json();
 
-        const masterPackage = await db.masterPackage.create({
+        // Validate required fields
+        const requiredFields = ['packageTitle', 'duration', 'price', 'description', 'image'];
+        const missingFields = requiredFields.filter(field => !(field in body));
+
+        if (missingFields.length > 0) {
+            return createErrorResponse(`Missing required fields: ${missingFields.join(', ')}`, 400);
+        }
+
+        // Validate data types
+        if (typeof body.price !== 'number' || body.price <= 0) {
+            return createErrorResponse('Price must be a positive number', 400);
+        }
+
+        // Create package
+        const newPackage = await db.masterPackage.create({
             data: {
-                packageTitle: package_title,
-                duration: duration,
-                price: price,
-                description: description,
-                image: image
+                packageTitle: body.packageTitle,
+                duration: body.duration,
+                price: body.price,
+                description: body.description,
+                image: body.image,
+                location: body.location,
+                minGroupSize: body.minGroupSize || 2,
+                maxGroupSize: body.maxGroupSize || 15
             }
         });
 
-        return NextResponse.json(masterPackage);
-
+        return createSuccessResponse(newPackage, 'Package created successfully', 201);
     } catch (error) {
-        console.log("[PACKAGES_POST]", error);
-        return new NextResponse("Internal Error", { status: 500 });
+        return handleApiError(error);
     }
 }

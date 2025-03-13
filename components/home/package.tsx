@@ -52,7 +52,7 @@ const PackageComponent = () => {
             const data = await response.json();
             console.log("Fetched packages:", data);
 
-            setPackageTour(data)
+            setPackageTour(data.data.packages)
         } catch (error) {
             if (error instanceof Error) {
                 console.error("Error fetching packages:", error.message);
